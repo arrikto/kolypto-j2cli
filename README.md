@@ -146,6 +146,9 @@ Options:
 * `--filters filters.py`: Load custom Jinja2 filters and tests from a Python file.
     Will load all top-level functions and register them as filters.
     This option can be used multiple times to import several files.
+* `--filters-modules module`: Load custom Jinja2 filters from a Python module.
+    Will load all top-level functions and register them as filters.
+    This option can be used multiple times to import several modules.
 * `--tests tests.py`: Load custom Jinja2 filters and tests from a Python file.
 * `--customize custom.py`: A Python file that implements hooks to fine-tune the j2cli behavior.
     This is fairly advanced stuff, use it only if you really need to customize the way Jinja2 is initialized.

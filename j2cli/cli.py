@@ -6,6 +6,7 @@ import jinja2.loaders
 from . import __version__
 
 import imp, inspect
+import importlib
 
 from .context import read_context_data, FORMATS
 from .extras import filters
@@ -66,11 +67,18 @@ class Jinja2TemplateRenderer(object):
     def import_filters(self, filename):
         self.register_filters(self._import_functions(filename))
 
+    def import_filters_from_module(self, module):
+        self.register_filters(self._import_functions_from_module(module))
+
     def import_tests(self, filename):
         self.register_tests(self._import_functions(filename))
 
     def _import_functions(self, filename):
         m = imp.load_source('imported-funcs', filename)
+        return dict((name, func) for name, func in inspect.getmembers(m) if inspect.isfunction(func))
+
+    def _import_functions_from_module(self, module):
+        m = importlib.import_module(module)
         return dict((name, func) for name, func in inspect.getmembers(m) if inspect.isfunction(func))
 
     def render(self, template_path, context):
@@ -114,6 +122,8 @@ def render_command(cwd, environ, stdin, argv):
                         help='Import environment variables as `var` variable. Use empty string to import into the top level')
     parser.add_argument('--filters', nargs='+', default=[], metavar='python-file', dest='filters',
                         help='Load custom Jinja2 filters from a Python file: all top-level functions are imported.')
+    parser.add_argument('--filters-modules', nargs='+', default=[], metavar='python-module', dest='filters_module',
+                        help='Load custom Jinja2 filters from a Python module: all top-level functions are imported.')
     parser.add_argument('--tests', nargs='+', default=[], metavar='python-file', dest='tests',
                         help='Load custom Jinja2 tests from a Python file.')
     parser.add_argument('--customize', default=None, metavar='python-file.py', dest='customize',
@@ -176,6 +186,8 @@ def render_command(cwd, environ, stdin, argv):
     })
     for fname in args.filters:
         renderer.import_filters(fname)
+    for module in args.filters_module:
+        renderer.import_filters_from_module(module)
     for fname in args.tests:
         renderer.import_tests(fname)
 
